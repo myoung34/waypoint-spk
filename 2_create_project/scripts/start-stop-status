@@ -20,7 +20,7 @@ if [ -d "${ALT_CONF_DIR}" ];
 then
     CONF_DIR="${ALT_CONF_DIR}"
 fi
-ARGS="waypoint server run -listen-http=192.168.2.113:9701 -listen-grpc=192.168.2.113:9702 -accept-tos"
+ARGS="server run -listen-http=192.168.2.113:9701 -listen-grpc=192.168.2.113:9702 -accept-tos"
 
 export HOME=${DIR_waypoint}
 export USER=root
