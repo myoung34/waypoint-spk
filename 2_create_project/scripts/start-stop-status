@@ -1,0 +1,101 @@
+#!/bin/sh
+#
+
+# Package
+PACKAGE="waypoint"
+DNAME="waypoint"
+
+# Others
+INSTALL_DIR="/usr/local/${PACKAGE}"
+DIR_waypoint="${INSTALL_DIR}/waypoint"
+waypoint="${DIR_waypoint}/waypoint"
+DIR_NAME="/volume1/@appstore/waypoint"
+CONF_DIR="${DIR_NAME}/conf.d"
+ALT_CONF_DIR="/etc/waypoint"
+PID_FILE="/var/run/waypoint.pid"
+LOG_FILE="/var/log/waypoint.log"
+
+# If configurations are found in $ALT_CONF_DIR, use it
+if [ -d "${ALT_CONF_DIR}" ];
+then
+    CONF_DIR="${ALT_CONF_DIR}"
+fi
+ARGS="waypoint server run -listen-http=192.168.2.113:9701 -listen-grpc=192.168.2.113:9702 -accept-tos"
+
+export HOME=${DIR_waypoint}
+export USER=root
+export USERNAME=root
+
+start_daemon ()
+{
+    echo "Using configuration file in ${CONF_DIR}" >> $LOG_FILE
+    ${waypoint} $ARGS >> ${LOG_FILE} 2>&1 &
+    echo $! > ${PID_FILE}
+}
+
+stop_daemon ()
+{
+    kill `cat ${PID_FILE}`
+    wait_for_status 1 20 || kill -9 `cat ${PID_FILE}`
+    rm -f ${PID_FILE}
+}
+
+daemon_status ()
+{
+    if [ -f ${PID_FILE} ] && kill -0 `cat ${PID_FILE}` > /dev/null 2>&1; then
+        return
+    fi
+    rm -f ${PID_FILE}
+    return 1
+}
+
+wait_for_status ()
+{
+    counter=$2
+    while [ ${counter} -gt 0 ]; do
+        daemon_status
+        [ $? -eq $1 ] && return
+        let counter=counter-1
+        sleep 1
+    done
+    return 1
+}
+
+
+case $1 in
+    start)
+        if daemon_status; then
+            echo ${DNAME} is already running
+        else
+            echo Starting ${DNAME} ...
+            start_daemon
+        fi
+        ;;
+    stop)
+        if daemon_status; then
+            echo Stopping ${DNAME} ...
+            stop_daemon
+        else
+            echo ${DNAME} is not running
+        fi
+        ;;
+    restart)
+        stop_daemon
+        start_daemon
+        ;;
+    status)
+        if daemon_status; then
+            echo ${DNAME} is running
+            exit 0
+        else
+            echo ${DNAME} is not running
+            exit 1
+        fi
+        ;;
+    log)
+        echo ${LOG_FILE}
+        ;;
+    *)
+        exit 1
+        ;;
+esac

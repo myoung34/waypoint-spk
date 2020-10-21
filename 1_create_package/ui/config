@@ -1,0 +1,15 @@
+{
+    ".url": {
+        "com.hashicorp.waypoint": {
+            "type": "url",
+            "allUsers": true,
+            "title": "Waypoint",
+            "desc": "Waypoint provides a modern workflow to build, deploy, and release across platforms.",
+            "icon": "waypoint-{0}.png",
+            "protocol": "http",
+            "url": "/",
+            "port": "9702", 
+            "grantPrivilege": "local"
+        }
+    }
+}
